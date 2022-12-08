@@ -1,0 +1,38 @@
+Sub Pot_2_InsertTimeVsTemp()
+
+Dim conn, rst, SQL_Table
+On Error Resume Next
+
+Set conn = CreateObject("ADODB.Connection")
+Set rst = CreateObject("ADODB.Recordset")
+
+conn.Open "Provider=MSDASQL;Initial Catalog=Gravita_Pot_1;DSN=GravitaScada" 
+
+If Err.Number <> 0 Then
+	ShowSystemAlarm "Error #" & Err.Number & " " & Err.Description
+	Err.Clear
+	Set conn = Nothing 
+	Exit Sub
+End If
+
+
+If SmartTags("Value_StartP2") > 0 Then
+SmartTags("RefineryNo_P2")=1
+ SQL_Table = "INSERT INTO Graph_Table (SetTemp,ProcessTemp,DuctTemp,ShutDownTemp,AlarmTemp,CustomerName,ProductName,RefineryNo,BatchNo,StartDate,EndDate,RunTime) VALUES ('" &SmartTags("Pot_2_Data_FinalSetPoint")&_
+ "' ,'" &SmartTags("Pot_2_ProcessTemp")&"', '"&SmartTags("Pot_2_FlueDuctTemp")&"','"&SmartTags("Pot_2_Data_ShutDownTemp")&"','"&SmartTags("Pot_2_Data_AlarmTemp")&_
+ "' ,'"&SmartTags("CustomerNameSelected_P2")&"','"&SmartTags("ProductNameSelected_P2")&"','"&SmartTags("RefineryNo_P2")&"','"&SmartTags("Pot_2_Data_BatchNo")&_
+ "' ,'"&SmartTags("Pot_2_Data_StartDateTime")&"','"&SmartTags("Pot_2_Data_EndDateTime")&"','"&SmartTags("Pot_2_Data_Runtime")&"')"
+
+End If
+
+Set rst = conn.Execute(SQL_Table)
+
+
+
+conn.close
+
+Set rst = Nothing
+Set conn = Nothing
+
+
+End Sub

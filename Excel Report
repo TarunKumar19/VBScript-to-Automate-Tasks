@@ -1,0 +1,98 @@
+Sub Pot_2_SearchSummery()
+
+Dim objConnection,strConnectionString,rs,rs_manual,Message
+Dim irow,icol,temp
+Dim objCommand,objExcelApp
+Dim fso, POP_UP ,DATE_NEXT, TIME_06AM, TIME_12AM, REPORT_NAME
+Dim DATE_FROM,DATE_TO
+Dim OperatorName,SupervisorName
+Dim BatchNo,ProductName,CustomerName
+
+
+TIME_06AM=  TimeValue("06:30:00 AM")
+TIME_12AM=  TimeValue("07:30:00 PM")
+DATE_FROM = SmartTags("Enter_DateFrom_P2")
+DATE_TO = SmartTags("Enter_DateTo_P2")
+BatchNo =SmartTags("ReportBatchNo_P2")
+OperatorName = SmartTags("ReportOperator_P2")
+SupervisorName = SmartTags("ReportSuperviser_P2")
+ProductName=SmartTags("ReportProduct_P2")
+CustomerName = SmartTags("ReportCustomer_P2") 
+REPORT_NAME =  CStr(Date) 
+
+Set objConnection = CreateObject("ADODB.Connection")
+Set objCommand = CreateObject("ADODB.Command")
+Set rs = CreateObject("ADODB.Recordset")
+Set rs_manual = CreateObject("ADODB.Recordset")
+Set objExcelApp = CreateObject("Excel.Application")
+
+objConnection.ConnectionString = "Provider=MSDASQL;Initial Catalog=Gravita_Pot_1;DSN=GravitaScada"
+
+objConnection.open
+If SmartTags("Report_No_P2")=1 Then
+
+Set rs = objConnection.Execute("SELECT * FROM Summery WHERE  BatchNo = '" & BatchNo &"' order by Date asc" )	
+
+ElseIf SmartTags("Report_No_P2")=2 Then	
+
+Set rs = objConnection.Execute("SELECT * FROM Summery WHERE StartDate >='" & DATE_FROM &"' And StartDate <='" & DATE_TO & "'order by Date asc")
+
+ElseIf SmartTags("Report_No_P2")=3 Then	
+
+Set rs = objConnection.Execute("SELECT * FROM Summery WHERE  ProductName = '" & ProductName &"' And (Date >='" & DATE_FROM &"' And Date <='" & DATE_TO & "')order by Date Asc" )
+
+ElseIf SmartTags("Report_No_P2")=4 Then	
+
+Set rs = objConnection.Execute("SELECT * FROM Summery WHERE  CustomerName = '" & CustomerName &"' And (Date >='" & DATE_FROM &"' And Date <='" & DATE_TO & "') order by Date asc" )
+
+ElseIf SmartTags("Report_No_P2")=5 Then	
+
+Set rs = objConnection.Execute("SELECT * FROM Summery WHERE  OperatorName = '" & OperatorName &"' And (Date >='" & DATE_FROM &"' And Date <='" & DATE_TO & "') order by Date asc" )
+
+ElseIf SmartTags("Report_No_P2")=6 Then	
+
+Set rs = objConnection.Execute("SELECT * FROM Summery WHERE  SupervisorName = '" & SupervisorName &"' And (Date >='" & DATE_FROM &"' And Date <='" & DATE_TO & "')order by Date asc" )
+
+End If
+
+'COPY FORMAT
+
+
+Dim MyFile
+Dim PATH
+Set fso = CreateObject("Scripting.FileSystemObject")
+Set MyFile = fso.GetFile("E:\RefinaryData\FORMAT\Summary_Report.xlsx")
+
+PATH="E:\RefinaryData\Reports\SearchReport\Pot_1\SummeryReport_" & CStr(Day(Now)) & CStr(Month(Now)) & CStr(Year(Now)) & ".xlsx"
+MyFile.Copy (PATH)
+
+objExcelApp.Workbooks.Open PATH
+
+'WRITE DATA IN XL FILE
+objExcelApp.Cells(2,3).Value = Date
+irow =6
+
+While Not rs.EOF
+
+Dim Col
+Col=1
+	For icol = 0 To rs.Fields.Count -1 
+	
+	objExcelApp.Cells(irow,Col + icol).Value = rs.Fields(icol).value
+	
+	Next
+
+	rs.MoveNext 
+	irow = irow + 1
+Wend
+
+objConnection.close
+objExcelApp.ActiveWorkbook.Save
+objExcelApp.Workbooks.Close
+objExcelApp.Quit
+SmartTags("ShowMessage_P2")=1
+
+Set objExcelApp = Nothing
+
+
+End Sub
